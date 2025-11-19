@@ -1,3 +1,10 @@
+---
+marp: true
+theme: default
+class: lead
+paginate: true
+---
+
 # **Individual Project Presentation**
 
 ---
