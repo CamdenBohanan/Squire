@@ -9,7 +9,16 @@ import 'UnitDetailsScreen.dart';
 class ArmyListLoadedScreen extends StatelessWidget {
   final ListPa armyList;
 
-  const ArmyListLoadedScreen({required this.armyList, super.key});
+  ArmyListLoadedScreen({required this.armyList, super.key});
+
+  // --- Theme Colors for Consistency ---
+  final Color _scaffoldBackground = const Color(0xFF121212); // Deep dark gray
+  final Color _cardBackground = const Color(
+    0xFF1F1F1F,
+  ); // Slightly lighter for contrast
+  final Color _primaryText = Colors.white;
+  final Color _secondaryText = Colors.white70;
+  final Color _accentColor = Colors.grey.shade400; // Bright accent
 
   // Helper function to format unit ID into asset paths (e.g., "30123" -> "assets/standees/30123.jpg")
   String _getImagePath(String? id, {String type = 'unit'}) {
@@ -36,17 +45,18 @@ class ArmyListLoadedScreen extends StatelessWidget {
             width: size,
             height: size,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: Colors.grey.shade800, // Dark background for placeholder
               borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(color: Colors.grey.shade500),
+              border: Border.all(color: Colors.grey.shade600),
             ),
             child: Center(
               child: Text(
                 '${imagePath.split('/').last.split('.').first}\nNo Image',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.grey.shade700,
+                  color: Colors.grey.shade400,
                   fontSize: size * 0.1,
+                  fontFamily: 'Garamond', // Applied Garamond font
                 ),
               ),
             ),
@@ -59,9 +69,20 @@ class ArmyListLoadedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _scaffoldBackground, // Apply dark background
       appBar: AppBar(
-        title: const Text('Tactical Tracker'),
-        backgroundColor: Colors.red.shade800,
+        title: Text(
+          'Tactical Tracker',
+          style: TextStyle(
+            fontFamily: 'Tuff', // Applied custom font
+            fontSize: 24,
+            color: _primaryText,
+          ),
+        ),
+        backgroundColor: _cardBackground, // Apply dark header
+        foregroundColor: _primaryText,
+        elevation: 0,
+        centerTitle: true,
       ),
       body: SafeArea(
         child: Padding(
@@ -76,7 +97,11 @@ class ArmyListLoadedScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Commander',
-                      style: Theme.of(context).textTheme.titleSmall,
+                      style: TextStyle(
+                        fontFamily: 'Tuff', // Applied custom font
+                        fontSize: 16,
+                        color: _accentColor,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 8),
@@ -92,14 +117,21 @@ class ArmyListLoadedScreen extends StatelessWidget {
                     Text(
                       armyList.commanderName,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: _primaryText,
+                        fontFamily: 'Tuff', // Applied custom font
+                      ),
                     ),
                   ],
                 ),
               ),
 
-              const VerticalDivider(width: 24, thickness: 2),
-
+              VerticalDivider(
+                width: 24,
+                thickness: 2,
+                color: Colors.white12,
+              ), // Dark theme divider
               // --- 2. Combat Units (Center, Horizontal Scrollable) ---
               Expanded(
                 child: Column(
@@ -107,14 +139,18 @@ class ArmyListLoadedScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Combat Units (${armyList.combatUnits.length})',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'Tuff', // Applied custom font
+                        fontSize: 20,
+                        color: _primaryText,
                       ),
                     ),
-                    const Divider(),
+                    const Divider(color: Colors.white12),
                     Expanded(
                       child: Consumer<HomeViewModel>(
                         builder: (context, viewModel, child) {
+                          // Ensure we use the latest state from the view model
                           final units = viewModel.listPa?.combatUnits ?? [];
 
                           return SingleChildScrollView(
@@ -139,8 +175,11 @@ class ArmyListLoadedScreen extends StatelessWidget {
                 ),
               ),
 
-              const VerticalDivider(width: 24, thickness: 2),
-
+              VerticalDivider(
+                width: 24,
+                thickness: 2,
+                color: Colors.white12,
+              ), // Dark theme divider
               // --- 3. NCUs (Right Side, Vertical Column) ---
               SizedBox(
                 width: 100,
@@ -149,14 +188,18 @@ class ArmyListLoadedScreen extends StatelessWidget {
                   children: [
                     Text(
                       'NCUs (${armyList.ncus.length})',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'Tuff', // Applied custom font
+                        fontSize: 18,
+                        color: _primaryText,
                       ),
                     ),
-                    const Divider(),
+                    const Divider(color: Colors.white12),
                     Expanded(
                       child: Consumer<HomeViewModel>(
                         builder: (context, viewModel, child) {
+                          // Ensure we use the latest state from the view model
                           final ncus = viewModel.listPa?.ncus ?? [];
 
                           return SingleChildScrollView(
@@ -189,13 +232,27 @@ class ArmyListLoadedScreen extends StatelessWidget {
             context,
             listen: false,
           ).resetAllActivations();
+          // Use dark theme appropriate SnackBar
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('All units reset to unactivated.')),
+            SnackBar(
+              content: Text(
+                'All units reset to unactivated.',
+                style: TextStyle(color: Colors.black, fontFamily: 'Garamond'),
+              ),
+              backgroundColor: _accentColor,
+              duration: const Duration(milliseconds: 1500),
+            ),
           );
         },
-        label: const Text('Reset Activations'),
-        icon: const Icon(Icons.refresh),
-        backgroundColor: Colors.blueGrey.shade700,
+        label: Text(
+          'Reset Activations',
+          style: TextStyle(
+            fontFamily: 'Tuff', // Applied custom font
+            color: Colors.black,
+          ),
+        ),
+        icon: const Icon(Icons.refresh, color: Colors.black),
+        backgroundColor: _accentColor,
       ),
     );
   }
@@ -209,12 +266,10 @@ class ArmyListLoadedScreen extends StatelessWidget {
     required bool isCombat,
     required HomeViewModel viewModel,
   }) {
-    // Retrieve the freshest state from the ViewModel
     final currentUnitState = viewModel.findUnitState(unit);
     final baseWounds = currentUnitState.unitDetails?.baseWounds ?? 1;
     final isDestroyed = currentUnitState.currentWounds >= baseWounds;
 
-    // Get unit IDs for image paths
     final unitId = currentUnitState.unitDetails?.id;
     final attachmentId = currentUnitState.attachmentDetails?.id;
 
@@ -232,14 +287,20 @@ class ArmyListLoadedScreen extends StatelessWidget {
         margin: const EdgeInsets.only(right: 16, bottom: 8),
         child: Card(
           elevation: 8,
+          color: _cardBackground, // Apply dark background
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
             side: BorderSide(
+              // Change border color based on status
               color: currentUnitState.isActivated
-                  ? Colors.green.shade600
+                  ? Colors
+                        .green
+                        .shade600 // Activated: Green
                   : isDestroyed
-                  ? Colors.black
-                  : Colors.red.shade400,
+                  ? Colors
+                        .red
+                        .shade900 // Destroyed: Dark Red
+                  : Colors.grey.shade700, // Ready: Subtle gray
               width: currentUnitState.isActivated ? 4 : 2,
             ),
           ),
@@ -253,10 +314,7 @@ class ArmyListLoadedScreen extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Unit Portrait
-                    _buildUnitImage(
-                      _getImagePath(unitId),
-                      size: 150,
-                    ), // Larger image
+                    _buildUnitImage(_getImagePath(unitId), size: 150),
                     const SizedBox(height: 12),
 
                     // Unit Name
@@ -266,9 +324,13 @@ class ArmyListLoadedScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: _primaryText,
+                        fontFamily: 'Tuff', // Applied custom font
                         decoration: isDestroyed
                             ? TextDecoration.lineThrough
                             : null,
+                        decorationColor: Colors.redAccent,
+                        decorationThickness: 2,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -295,7 +357,7 @@ class ArmyListLoadedScreen extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.yellow.shade700,
+                        color: _accentColor, // Use accent color
                         width: 3,
                       ),
                       borderRadius: BorderRadius.circular(15),
@@ -339,16 +401,17 @@ class ArmyListLoadedScreen extends StatelessWidget {
         );
       },
       child: Container(
+        width: 100, // Ensure card fits the column width
         margin: const EdgeInsets.only(bottom: 12),
         child: Card(
           elevation: 4,
-          color: Colors.grey.shade100,
+          color: _cardBackground, // Apply dark background
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
             side: BorderSide(
               color: currentUnitState.isActivated
-                  ? Colors.lightBlue.shade600
-                  : Colors.grey.shade400,
+                  ? _accentColor // Activated: Accent color
+                  : Colors.grey.shade700, // Ready: Subtle gray
               width: currentUnitState.isActivated ? 3 : 1,
             ),
           ),
@@ -356,15 +419,17 @@ class ArmyListLoadedScreen extends StatelessWidget {
             padding: const EdgeInsets.all(6.0),
             child: Column(
               children: [
-                // Use unit ID for image path
+                // Unit Image
                 _buildUnitImage(_getImagePath(unitId, type: 'ncu'), size: 70),
                 const SizedBox(height: 4),
                 Text(
                   unit.unitName,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
+                    color: _secondaryText,
+                    fontFamily: 'Garamond', // Applied Garamond font
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -402,10 +467,14 @@ class ArmyListLoadedScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
-                color: isDestroyed ? Colors.black12 : Colors.red.shade100,
+                color: isDestroyed
+                    ? Colors.red.shade900
+                    : Colors.red.shade700.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(4),
                 border: Border.all(
-                  color: isDestroyed ? Colors.black54 : Colors.red.shade400,
+                  color: isDestroyed
+                      ? Colors.red.shade500
+                      : Colors.red.shade600,
                 ),
               ),
               child: Text(
@@ -416,7 +485,8 @@ class ArmyListLoadedScreen extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 11,
-                  color: isDestroyed ? Colors.black : Colors.red.shade900,
+                  color: isDestroyed ? Colors.white : Colors.white,
+                  fontFamily: 'Garamond', // Applied Garamond font
                 ),
               ),
             ),
@@ -437,11 +507,13 @@ class ArmyListLoadedScreen extends StatelessWidget {
     required bool isNcu,
   }) {
     final Color activeColor = isNcu
-        ? Colors.lightBlue.shade500
-        : Colors.green.shade500;
+        ? _accentColor // NCU Activated: Accent
+        : Colors.green.shade500; // CU Activated: Green
     final Color inactiveColor = isNcu
-        ? Colors.grey.shade400
-        : Colors.red.shade500;
+        ? Colors
+              .grey
+              .shade700 // NCU Ready: Dark Gray
+        : Colors.red.shade700; // CU Ready: Dark Red
 
     return InkWell(
       onTap: () {
@@ -458,14 +530,16 @@ class ArmyListLoadedScreen extends StatelessWidget {
           color: currentUnitState.isActivated ? activeColor : inactiveColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withOpacity(0.4),
               spreadRadius: 1,
-              blurRadius: 3,
+              blurRadius: 4,
             ),
           ],
         ),
         child: Icon(
-          currentUnitState.isActivated ? Icons.check : Icons.close,
+          currentUnitState.isActivated
+              ? Icons.check
+              : Icons.timer_off, // Using timer_off for inactive state
           color: Colors.white,
           size: 18,
         ),
@@ -477,6 +551,8 @@ class ArmyListLoadedScreen extends StatelessWidget {
 // Extension to help ViewModel consumers find the correct state
 extension HomeViewModelHelper on HomeViewModel {
   UnitEntry findUnitState(UnitEntry unit) {
+    // Determine if the unit is a Combat Unit (CU) based on presence in the CU list.
+    // This is a reliable check as CUs and NCUs are mutually exclusive lists in ListPa.
     final isCombat =
         listPa?.combatUnits.any(
           (u) =>

@@ -18,11 +18,23 @@ class _HomeScreenState extends State<HomeScreen> {
   // Changed to nullable to safely check initialization state in dispose
   HomeViewModel? _model;
 
+  // --- Theme Colors ---
+  final Color _scaffoldBackground = const Color(0xFF121212); // Deep dark gray
+  final Color _cardBackground = const Color(
+    0xFF1F1F1F,
+  ); // Slightly lighter for contrast
+  final Color _textFieldFill = const Color(
+    0xFF2C2C2C,
+  ); // Dark gray for input fields
+  final Color _primaryText = Colors.white;
+  final Color _secondaryText = Colors.white70;
+  final Color _accentColor =
+      Colors.grey.shade400; // Bright accent for highlights
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Assignment is slightly different since _model is now nullable
       _model = Provider.of<HomeViewModel>(context, listen: false);
       _model!.navigateToDetails.addListener(_handleNavigation);
     });
@@ -31,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     if (mounted) {
-      // Added a correct null check
       if (_model != null) {
         _model!.navigateToDetails.removeListener(_handleNavigation);
       }
@@ -62,38 +73,64 @@ class _HomeScreenState extends State<HomeScreen> {
     final model = context.watch<HomeViewModel>();
 
     return Scaffold(
+      backgroundColor: _scaffoldBackground,
       appBar: AppBar(
-        title: const Text('Army List Detail Viewer'),
-        backgroundColor: Colors.grey[800],
-        foregroundColor: Colors.white,
+        title: Text(
+          'Squire',
+          style: TextStyle(
+            fontFamily: 'Tuff', // Applied custom font
+            fontSize: 24,
+          ),
+        ),
+        // Overriding the previous color settings for a darker look
+        backgroundColor: _cardBackground,
+        foregroundColor: _primaryText,
+        elevation: 0,
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- 1. Input Area ---
-            const Text(
+            // --- 1. Input Area Title ---
+            Text(
               'Paste your Army List below:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Tuff', // Applied custom font
+                color: _primaryText,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+
+            // --- 2. Input Field ---
             TextFormField(
               controller: _textController,
               maxLines: 10,
+              style: TextStyle(
+                color: _primaryText,
+                fontFamily: 'Garamond',
+              ), // Applied Garamond for body text
               decoration: InputDecoration(
                 hintText:
                     'Faction : STARK\nCommander : Robb Stark - The Wolf Lord\n...\nUnits :',
+                hintStyle: TextStyle(
+                  color: _secondaryText.withOpacity(0.5),
+                  fontFamily: 'Garamond',
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
-                fillColor: Colors.grey[100],
+                fillColor: _textFieldFill,
                 filled: true,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            // --- 2. Action Button ---
+            // --- 3. Action Button ---
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -104,51 +141,67 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                 icon: model.isLoading
                     ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.search),
                 label: Text(
                   model.isLoading ? 'LOADING...' : 'PARSE & FETCH DETAILS',
+                  style: const TextStyle(
+                    fontFamily: 'Tuff', // Applied custom font
+                    fontSize: 16,
+                    letterSpacing: 1.2,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  // Dark theme button styling
+                  backgroundColor: _accentColor,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 5,
                 ),
               ),
             ),
-            const Divider(height: 32),
+            const Divider(height: 48, color: Colors.white10),
 
-            // --- 3. Error Message Display ---
+            // --- 4. Error Message Display ---
             if (model.errorMessage.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Text(
                   'Error: ${model.errorMessage}',
-                  style: const TextStyle(
-                    color: Colors.red,
+                  style: TextStyle(
+                    color: Colors.redAccent,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
 
-            // --- 4. Parsed List Summary (if available) ---
+            // --- 5. Parsed List Summary (if available) ---
             if (model.listPa != null) _buildArmySummary(context, model),
 
             const SizedBox(height: 24),
 
-            if (model.listPa == null && !model.isLoading)
+            if (model.listPa == null &&
+                !model.isLoading &&
+                model.errorMessage.isEmpty)
               Center(
                 child: Padding(
                   padding: const EdgeInsets.only(top: 50.0),
                   child: Text(
                     'Paste an army list to begin.',
-                    style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: _secondaryText,
+                      fontFamily: 'Garamond', // Applied Garamond font
+                    ),
                   ),
                 ),
               ),
@@ -162,6 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final list = model.listPa!;
     return Card(
       elevation: 4,
+      color: _cardBackground, // Dark theme background
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -171,18 +225,18 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'Army Summary',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Theme.of(context).primaryColor,
+                fontFamily: 'Tuff', // Applied custom font
+                color: _accentColor,
               ),
             ),
-            const Divider(),
+            const Divider(color: Colors.white10),
             _buildSummaryRow('Faction:', list.faction),
             _buildSummaryRow('Commander:', list.commanderName),
             _buildSummaryRow('Points:', list.totalPoints.toString()),
             _buildSummaryRow('Activations:', list.totalActivations.toString()),
             const SizedBox(height: 10),
-            // FIX: Use the list length directly, as combatUnits only contains CUs
             _buildUnitList('Combat Units:', list.combatUnits.length),
             _buildUnitList('Non-Combat Units (NCUs):', list.ncus.length),
           ],
@@ -193,12 +247,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSummaryRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: _secondaryText,
+              fontFamily: 'Garamond', // Applied Garamond font
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: _primaryText,
+              fontFamily: 'Tuff', // Applied Tuff font for emphasis
+            ),
+          ),
         ],
       ),
     );
@@ -206,16 +274,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildUnitList(String label, int count) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: _secondaryText,
+              fontFamily: 'Garamond', // Applied Garamond font
+            ),
+          ),
           Text(
             '$count units',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: Colors.blueGrey,
+              color: _accentColor,
+              fontFamily: 'Tuff', // Applied Tuff font for emphasis
             ),
           ),
         ],

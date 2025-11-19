@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "manga_reader_app" "\0"
+            VALUE "FileDescription", "Squire_reader_app" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "manga_reader_app" "\0"
+            VALUE "InternalName", "Squire_reader_app" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "manga_reader_app.exe" "\0"
-            VALUE "ProductName", "manga_reader_app" "\0"
+            VALUE "OriginalFilename", "Squire_reader_app.exe" "\0"
+            VALUE "ProductName", "Squire_reader_app" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

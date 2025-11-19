@@ -14,6 +14,15 @@ class UnitDetailsScreen extends StatefulWidget {
 }
 
 class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
+  // --- Theme Colors and Fonts for Consistency ---
+  final Color _scaffoldBackground = const Color(0xFF121212); // Deep dark gray
+  final Color _cardBackground = const Color(
+    0xFF1F1F1F,
+  ); // Slightly lighter for contrast
+  final Color _primaryText = Colors.white;
+  final Color _secondaryText = Colors.white70;
+  final Color _accentColor = Colors.grey.shade400; // Bright accent
+
   // State to track which attack profile is selected (e.g., 'melee' or 'long')
   String _selectedAttackType = 'melee';
 
@@ -28,12 +37,65 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     }
   }
 
+  // --- MOCK IMAGE HELPERS (Copied from ArmyListLoadedScreen for consistency) ---
+
+  // Helper to construct the full asset path
+  String _getImagePath(String? id, {required String type}) {
+    if (id == null || id.isEmpty) {
+      // Return a generic placeholder if the ID is missing
+      return 'assets/standees/placeholder_$type.jpg';
+    }
+    // Use the ID directly with the .jpg extension as specified
+    return 'assets/standees/$id.jpg';
+  }
+
+  // Helper to build an image widget, handling potential errors
+  Widget _buildUnitImage(
+    String imagePath, {
+    required double size,
+    required bool isMain,
+  }) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(isMain ? 12.0 : 8.0),
+      child: Image.asset(
+        imagePath,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          // Fallback widget if the image asset is not found (Dark Theme)
+          return Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade800, // Dark background for placeholder
+              borderRadius: BorderRadius.circular(isMain ? 12.0 : 8.0),
+              border: Border.all(color: Colors.grey.shade600),
+            ),
+            child: Center(
+              child: Text(
+                '${imagePath.split('/').last.split('.').first}\nNo Image',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: size * 0.1,
+                  fontFamily: 'Garamond',
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // --- END MOCK IMAGE HELPERS ---
+
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<HomeViewModel>(context);
 
     // Get the current state of the unit from the ViewModel
-    // NOTE: This logic ensures we use the most up-to-date state from the ViewModel
     army_data.UnitEntry currentUnitState = widget.unit;
 
     // Safely look up the unit in the ViewModel's state to get the latest wounds/modifiers
@@ -78,23 +140,34 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     final isCombatUnit = currentUnitState.unitDetails?.defense != null;
 
     return Scaffold(
+      backgroundColor: _scaffoldBackground, // Apply dark background
       appBar: AppBar(
-        title: Text(currentUnitState.unitName),
-        backgroundColor: Colors.red.shade800,
+        title: Text(
+          currentUnitState.unitName,
+          style: TextStyle(
+            fontFamily: 'Tuff', // Applied custom font
+            fontSize: 22,
+            color: _primaryText,
+          ),
+        ),
+        backgroundColor: _cardBackground, // Apply dark header
+        foregroundColor: _primaryText,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- NEW: UNIT AND ATTACHMENT PORTRAITS ---
+            // --- UNIT AND ATTACHMENT PORTRAITS ---
             _buildPortraitsRow(currentUnitState),
 
             const SizedBox(height: 20),
 
             // --- UNIT IDENTIFICATION ---
             Card(
-              elevation: 4,
+              color: _cardBackground, // Apply dark card color
+              elevation: 8,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
@@ -105,9 +178,11 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                   children: [
                     Text(
                       currentUnitState.unitName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
+                        color: _accentColor,
+                        fontFamily: 'Tuff',
                       ),
                     ),
                     if (currentUnitState.attachmentName != null)
@@ -115,10 +190,11 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                         'Attached: ${currentUnitState.attachmentName}',
                         style: TextStyle(
                           fontSize: 18,
-                          color: Colors.blueGrey.shade600,
+                          color: _secondaryText,
+                          fontFamily: 'Garamond',
                         ),
                       ),
-                    const Divider(height: 20),
+                    Divider(height: 20, color: Colors.white12),
                     _buildActivationTracker(
                       context,
                       currentUnitState,
@@ -146,14 +222,12 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     );
   }
 
-  // --- NEW: Portrait Builder Section ---
+  // --- Portrait Builder Section ---
 
   Widget _buildPortraitsRow(army_data.UnitEntry unit) {
     final unitData = unit.unitDetails;
     final attachmentData = unit.attachmentDetails;
-    // Set a large size for the main unit image
     const double mainImageSize = 120.0;
-    // Set a slightly smaller size for the attachment
     const double secondaryImageSize = 90.0;
 
     return Row(
@@ -200,7 +274,8 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: isMain ? 18 : 16,
-            color: isMain ? Colors.black87 : Colors.blueGrey.shade700,
+            color: isMain ? _primaryText : _accentColor, // Differentiate roles
+            fontFamily: 'Tuff',
           ),
         ),
         const SizedBox(height: 8),
@@ -215,7 +290,11 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
           child: Text(
             title ?? name,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 12),
+            style: TextStyle(
+              fontSize: 12,
+              color: _secondaryText,
+              fontFamily: 'Garamond',
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -234,20 +313,28 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Activation Status',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            color: _primaryText,
+            fontFamily: 'Tuff',
+          ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: unit.isActivated ? Colors.green.shade50 : Colors.red.shade50,
+            color: unit.isActivated
+                ? Colors.green.shade900.withOpacity(0.5)
+                : Colors.red.shade900.withOpacity(0.5),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: unit.isActivated
                   ? Colors.green.shade600
                   : Colors.red.shade600,
+              width: 2,
             ),
           ),
           child: Row(
@@ -256,11 +343,10 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
               Text(
                 unit.isActivated ? 'ACTIVATED' : 'UNACTIVATED',
                 style: TextStyle(
-                  color: unit.isActivated
-                      ? Colors.green.shade800
-                      : Colors.red.shade800,
+                  color: unit.isActivated ? _accentColor : Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
+                  fontFamily: 'Garamond',
                 ),
               ),
               ElevatedButton.icon(
@@ -271,12 +357,17 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                 icon: Icon(
                   unit.isActivated ? Icons.undo : Icons.check_circle_outline,
                 ),
-                label: Text(unit.isActivated ? 'Reset' : 'Activate'),
+                label: Text(
+                  unit.isActivated ? 'Reset' : 'Activate',
+                  style: const TextStyle(fontFamily: 'Tuff'),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: unit.isActivated
-                      ? Colors.amber.shade700
-                      : Colors.green.shade700,
-                  foregroundColor: Colors.white,
+                      ? Colors
+                            .amber
+                            .shade700 // Reset button color
+                      : _accentColor, // Activate button color
+                  foregroundColor: Colors.black, // Ensure contrast
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -301,12 +392,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     int parsedWounds = unit.unitDetails?.baseWounds ?? 0;
 
     // --- CRITICAL FIX FOR 3 WOUNDS ISSUE ---
-    // If it's a combat unit and the parsed wounds are less than 12 (but not 0),
-    // it likely means the API/parser provided a faulty low number (like 3).
-    // We enforce the ASOIAF standard of 12 for these units.
     if (isCombatUnit && parsedWounds < 12 && parsedWounds > 0) {
-      // NOTE: The root issue is the API/Parser returning 3 instead of 12 for standard combat units.
-      // This view-layer fix enforces the expected 12 wounds.
       parsedWounds = 12;
     }
 
@@ -318,22 +404,28 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     final isDestroyed = woundsRemaining <= 0;
 
     return Card(
-      elevation: 4,
+      color: _cardBackground, // Apply dark card color
+      elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Wound Tracker',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: _primaryText,
+                fontFamily: 'Tuff',
+              ),
             ),
-            const Divider(height: 20),
+            Divider(height: 20, color: Colors.white12),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Decrement Wounds Button (Increments Wounds Taken / Takes Damage)
+                // Decrement Wounds Button (Takes Damage)
                 _buildWoundButton(
                   icon: Icons.exposure_plus_1, // Damage taken is +1 wound
                   color: Colors.red.shade700,
@@ -352,25 +444,28 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 10),
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: isDestroyed ? Colors.red.shade100 : Colors.white,
-                    border: Border.all(color: Colors.red.shade300),
+                    color: isDestroyed ? Colors.red.shade900 : Colors.black,
+                    border: Border.all(color: Colors.red.shade600),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
                     child: Column(
                       children: [
-                        const Text(
+                        Text(
                           'Wounds Remaining',
-                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: isDestroyed ? Colors.white : Colors.white70,
+                            fontFamily: 'Garamond',
+                          ),
                         ),
                         Text(
                           '$woundsRemaining / $maxWounds',
                           style: TextStyle(
                             fontSize: 30,
                             fontWeight: FontWeight.w900,
-                            color: isDestroyed
-                                ? Colors.red.shade900
-                                : Colors.black87,
+                            color: isDestroyed ? Colors.white : _accentColor,
+                            fontFamily: 'Tuff',
                           ),
                         ),
                       ],
@@ -378,7 +473,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                   ),
                 ),
 
-                // Increment Wounds Button (Decrements Wounds Taken / Heals)
+                // Increment Wounds Button (Heals)
                 _buildWoundButton(
                   icon: Icons.exposure_minus_1, // Healing is -1 wound
                   color: Colors.green.shade700,
@@ -393,14 +488,15 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
               ],
             ),
             if (isDestroyed)
-              const Padding(
-                padding: EdgeInsets.only(top: 10),
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
                 child: Text(
                   'Unit Destroyed/Broken!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.red,
+                    color: Colors.redAccent,
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'Tuff',
                   ),
                 ),
               ),
@@ -410,9 +506,11 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
               child: Center(
                 child: Text(
                   _getCurrentRankText(maxWounds, woundsTaken),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontStyle: FontStyle.italic,
+                    color: _secondaryText,
+                    fontFamily: 'Garamond',
                   ),
                 ),
               ),
@@ -426,10 +524,8 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
   String _getCurrentRankText(int maxWounds, int woundsTaken) {
     final woundsRemaining = maxWounds - woundsTaken;
     if (woundsRemaining > maxWounds * 2 / 3) {
-      // > 8 wounds remaining on a 12-wound unit
       return 'Current Rank: 3 (Full Dice)';
     } else if (woundsRemaining > maxWounds * 1 / 3) {
-      // > 4 wounds remaining on a 12-wound unit
       return 'Current Rank: 2 (Mid Dice)';
     } else if (woundsRemaining > 0) {
       return 'Current Rank: 1 (Low Dice)';
@@ -447,12 +543,13 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black,
         shape: const CircleBorder(),
         padding: const EdgeInsets.all(15),
         elevation: 5,
+        shadowColor: Colors.black,
       ),
-      child: Icon(icon, size: 24),
+      child: Icon(icon, size: 24, color: Colors.white),
     );
   }
 
@@ -474,6 +571,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: color,
+              fontFamily: 'Garamond',
             ),
           ),
           Row(
@@ -482,9 +580,9 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.remove_circle_outline,
-                      color: Colors.red,
+                      color: Colors.red.shade400,
                     ),
                     onPressed: () => onUpdate(currentValue - 1),
                     tooltip: 'Decrease Modifier',
@@ -494,16 +592,18 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                     alignment: Alignment.center,
                     child: Text(
                       (currentValue > 0 ? '+' : '') + currentValue.toString(),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
+                        color: _primaryText,
+                        fontFamily: 'Tuff',
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.add_circle_outline,
-                      color: Colors.green,
+                      color: Colors.green.shade400,
                     ),
                     onPressed: () => onUpdate(currentValue + 1),
                     tooltip: 'Increase Modifier',
@@ -511,7 +611,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                 ],
               ),
               IconButton(
-                icon: const Icon(Icons.clear, color: Colors.grey),
+                icon: const Icon(Icons.clear, color: Colors.white38),
                 onPressed: () => onUpdate(0),
                 tooltip: 'Reset Modifier',
               ),
@@ -527,17 +627,14 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     army_data.UnitEntry unit,
     HomeViewModel viewModel,
   ) {
-    // Get all available attack profiles (Melee and Range)
     final attackProfiles = unit.unitDetails?.attacks ?? [];
 
-    // NEW: Get the list of unique attack types available for this unit.
     final availableAttackTypes = attackProfiles
         .map((p) => p.type)
         .toSet()
         .toList();
     final hasMultipleAttackTypes = availableAttackTypes.length > 1;
 
-    // --- Attack Dice & To-Hit for Selected Type ---
     final attackDice = viewModel.getAttackDiceForUnit(
       unit,
       _selectedAttackType,
@@ -556,28 +653,31 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
         )
         .name;
 
-    // --- Defense & Morale ---
     final defenseSaveTarget = viewModel.getDefenseSaveTarget(unit);
-    final defenseDice = viewModel.getDefenseDiceCount(
-      unit,
-    ); // Get dynamic defense dice count
+    final defenseDice = viewModel.getDefenseDiceCount(unit);
     final moraleTarget = viewModel.getMoraleTarget(unit);
 
     return Card(
-      elevation: 4,
+      color: _cardBackground, // Apply dark card color
+      elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Combat Rolls',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: _primaryText,
+                fontFamily: 'Tuff',
+              ),
             ),
-            const Divider(height: 10),
+            Divider(height: 10, color: Colors.white12),
 
-            // --- FIXED: Attack Type Selector (only if multiple types exist) ---
+            // --- Attack Type Selector (only if multiple types exist) ---
             if (hasMultipleAttackTypes)
               _buildAttackTypeSelector(context, availableAttackTypes),
 
@@ -587,7 +687,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
             _buildModifierControls(
               label: 'Attack Roll Modifier (Target Roll: $toHitTarget+)',
               currentValue: unit.attackModifier,
-              color: Colors.red.shade700,
+              color: Colors.red.shade400,
               onUpdate: (value) => viewModel.updateAttackModifier(
                 unit.unitName,
                 attachmentName: unit.attachmentName,
@@ -611,12 +711,12 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
 
             const SizedBox(height: 20),
 
-            // --- Save Roll Modifier ---
+            // --- Save Roll Modifier (Target) ---
             _buildModifierControls(
               label:
                   'Defense Roll Target Modifier (Target Save: $defenseSaveTarget+)',
               currentValue: unit.defenseModifier,
-              color: Colors.blue.shade700,
+              color: Colors.blue.shade400,
               onUpdate: (value) => viewModel.updateDefenseModifier(
                 unit.unitName,
                 attachmentName: unit.attachmentName,
@@ -624,11 +724,11 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
               ),
             ),
 
-            // NEW: Defense Dice Modifier
+            // Defense Dice Modifier
             _buildModifierControls(
               label: 'Defense Roll Dice Modifier (Total Dice: $defenseDice D6)',
               currentValue: unit.defenseDiceModifier,
-              color: Colors.orange.shade700,
+              color: _accentColor,
               onUpdate: (value) => viewModel.updateDefenseDiceModifier(
                 unit.unitName,
                 attachmentName: unit.attachmentName,
@@ -637,7 +737,6 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
             ),
 
             // --- Save Roll Button ---
-            // UPDATED: Now uses the dynamic defenseDice count
             _buildRollButton(
               context,
               'Defense Roll (${defenseDice}D6 | Save $defenseSaveTarget+)',
@@ -657,7 +756,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
             _buildModifierControls(
               label: 'Morale Check Modifier (Target Roll: $moraleTarget+)',
               currentValue: unit.moraleModifier,
-              color: Colors.purple.shade700,
+              color: Colors.purple.shade400,
               onUpdate: (value) => viewModel.updateMoraleModifier(
                 unit.unitName,
                 attachmentName: unit.attachmentName,
@@ -680,28 +779,32 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     );
   }
 
-  // --- UPDATED Attack Type Selector ---
+  // --- UPDATED Attack Type Selector (Themed) ---
   Widget _buildAttackTypeSelector(
     BuildContext context,
     List<String> availableTypes,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Colors.black54, // Dark background
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Colors.white12),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          // Ensure the selected type is still valid, default to the first available if not.
           value: availableTypes.contains(_selectedAttackType)
               ? _selectedAttackType
               : availableTypes.first,
           isExpanded: true,
-          icon: const Icon(Icons.arrow_downward),
+          icon: Icon(Icons.arrow_drop_down, color: _accentColor),
           elevation: 16,
-          style: TextStyle(color: Colors.red.shade800, fontSize: 16),
+          dropdownColor: Colors.black87,
+          style: TextStyle(
+            color: _primaryText,
+            fontSize: 16,
+            fontFamily: 'Garamond',
+          ),
           onChanged: (String? newValue) {
             if (newValue != null) {
               setState(() {
@@ -725,13 +828,17 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                 label = '${value[0].toUpperCase()}${value.substring(1)} Attack';
             }
 
-            return DropdownMenuItem<String>(value: value, child: Text(label));
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(label, style: TextStyle(color: _primaryText)),
+            );
           }).toList(),
         ),
       ),
     );
   }
 
+  // --- Themed Roll Button ---
   Widget _buildRollButton(
     BuildContext context,
     String label,
@@ -741,17 +848,25 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
   ) {
     return ElevatedButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon),
-      label: Text(label),
+      icon: Icon(icon, color: Colors.white),
+      label: Text(
+        label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontFamily: 'Tuff', // Applied custom font
+        ),
+      ),
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
         foregroundColor: Colors.white,
         minimumSize: const Size.fromHeight(50),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        elevation: 5,
       ),
     );
   }
 
+  // --- Themed Attack Roll Dialog ---
   void _showAttackRollResult(
     BuildContext context,
     String rollType,
@@ -760,14 +875,17 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
   ) {
     if (numberOfDice <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Cannot roll: Unit is destroyed or has 0 attack dice."),
+        SnackBar(
+          content: Text(
+            "Cannot roll: Unit is destroyed or has 0 attack dice.",
+            style: TextStyle(color: Colors.black, fontFamily: 'Garamond'),
+          ),
+          backgroundColor: _accentColor,
         ),
       );
       return;
     }
 
-    // Dice roll implementation remains the same
     final rolls = List<int>.generate(
       numberOfDice,
       (_) => 1 + Random().nextInt(6),
@@ -778,11 +896,18 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('$rollType Roll (Hit $toHit+)'),
+          backgroundColor: _cardBackground,
+          title: Text(
+            '$rollType Roll (Hit $toHit+)',
+            style: TextStyle(color: _primaryText, fontFamily: 'Tuff'),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Rolled $numberOfDice D6:'),
+              Text(
+                'Rolled $numberOfDice D6:',
+                style: TextStyle(color: _secondaryText, fontFamily: 'Garamond'),
+              ),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8.0,
@@ -791,21 +916,27 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                       (roll) => Chip(
                         label: Text(
                           roll.toString(),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color:
+                                Colors.black, // Chip text is black for contrast
+                          ),
                         ),
                         backgroundColor: roll >= toHit
-                            ? Colors.green.shade200
-                            : Colors.red.shade200,
+                            ? Colors.green.shade400
+                            : Colors.red.shade400,
                       ),
                     )
                     .toList(),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               Text(
                 'Total Hits: $hits',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: _accentColor,
+                  fontFamily: 'Tuff',
                 ),
               ),
             ],
@@ -813,7 +944,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text('OK', style: TextStyle(color: _accentColor)),
             ),
           ],
         );
@@ -821,7 +952,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     );
   }
 
-  // Generic roll result (used for Save Roll)
+  // --- Themed Generic Roll Dialog (Defense Save) ---
   void _showRollResult(
     BuildContext context,
     String rollType,
@@ -830,7 +961,13 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
   ) {
     if (numberOfDice <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Cannot roll: Dice count is zero.")),
+        SnackBar(
+          content: Text(
+            "Cannot roll: Dice count is zero.",
+            style: TextStyle(color: Colors.black, fontFamily: 'Garamond'),
+          ),
+          backgroundColor: _accentColor,
+        ),
       );
       return;
     }
@@ -845,11 +982,18 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('$rollType Roll (Target $targetValue+)'),
+          backgroundColor: _cardBackground,
+          title: Text(
+            '$rollType Roll (Target $targetValue+)',
+            style: TextStyle(color: _primaryText, fontFamily: 'Tuff'),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Rolled $numberOfDice D6:'),
+              Text(
+                'Rolled $numberOfDice D6:',
+                style: TextStyle(color: _secondaryText, fontFamily: 'Garamond'),
+              ),
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8.0,
@@ -858,21 +1002,26 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                       (roll) => Chip(
                         label: Text(
                           roll.toString(),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
                         backgroundColor: roll >= targetValue
-                            ? Colors.green.shade200
-                            : Colors.red.shade200,
+                            ? _accentColor
+                            : Colors.red.shade400,
                       ),
                     )
                     .toList(),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               Text(
                 'Total Successes: $successes',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
+                  color: _accentColor,
+                  fontFamily: 'Tuff',
                 ),
               ),
             ],
@@ -880,7 +1029,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text('OK', style: TextStyle(color: _accentColor)),
             ),
           ],
         );
@@ -888,7 +1037,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
     );
   }
 
-  // --- Morale Roll Specific Logic ---
+  // --- Themed Morale Roll Specific Logic ---
   void _showMoraleRollResult(
     BuildContext context,
     int moraleTarget, // This is the *adjusted* target
@@ -902,18 +1051,18 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
 
     int damageTaken = 0;
     String resultMessage = '';
-    Color resultColor = Colors.green.shade700;
+    Color resultColor;
+    String resultTitle;
 
     if (rollTotal >= moraleTarget) {
       // Success
-      resultMessage =
-          'PASSED Morale Check ($rollTotal vs $moraleTarget+). No damage taken.';
+      resultTitle = 'Morale Check PASSED';
+      resultColor = Colors.green.shade400;
+      resultMessage = 'PASSED ($rollTotal vs $moraleTarget+). No damage taken.';
     } else {
       // Failure - Damage taken is Morale Target minus the roll total
       damageTaken = moraleTarget - rollTotal;
-
-      // Prevent taking negative damage
-      damageTaken = max(0, damageTaken);
+      damageTaken = max(0, damageTaken); // Prevent taking negative damage
 
       // Update the wounds in the ViewModel
       final newWounds = unit.currentWounds + damageTaken;
@@ -923,13 +1072,13 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
         newWounds: newWounds,
       );
 
-      resultColor = Colors.red.shade700;
+      resultTitle = 'Morale Check FAILED';
+      resultColor = Colors.red.shade400;
       if (damageTaken > 0) {
         resultMessage =
-            'FAILED Morale Check ($rollTotal vs $moraleTarget+)! Unit takes $damageTaken wounds.';
+            'FAILED ($rollTotal vs $moraleTarget+)! Unit takes $damageTaken wounds.';
       } else {
-        resultMessage =
-            'FAILED Morale Check, but no wounds were calculated to be taken.';
+        resultMessage = 'FAILED, but no wounds were calculated to be taken.';
       }
     }
 
@@ -937,7 +1086,11 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Morale Check Result'),
+          backgroundColor: _cardBackground,
+          title: Text(
+            resultTitle,
+            style: TextStyle(color: resultColor, fontFamily: 'Tuff'),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -947,6 +1100,7 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: resultColor,
+                  fontFamily: 'Garamond',
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -957,99 +1111,53 @@ class _UnitDetailsScreenState extends State<UnitDetailsScreen> {
                   Chip(
                     label: Text(
                       roll1.toString(),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
+                    backgroundColor: Colors.white,
                   ),
                   const SizedBox(width: 8),
                   Chip(
                     label: Text(
                       roll2.toString(),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
+                    backgroundColor: Colors.white,
                   ),
                 ],
               ),
               const SizedBox(height: 10),
               Text(
-                'Total Roll: $rollTotal',
-                style: const TextStyle(fontSize: 16),
+                'Total Roll: $rollTotal (Target: $moraleTarget+)',
+                style: TextStyle(fontSize: 16, color: _primaryText),
               ),
               if (damageTaken > 0)
-                Text(
-                  '(Wounds automatically applied)',
-                  style: TextStyle(fontSize: 14, color: Colors.red.shade400),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    '(Wounds automatically applied to unit state)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.redAccent,
+                      fontFamily: 'Garamond',
+                    ),
+                  ),
                 ),
             ],
           ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text('OK', style: TextStyle(color: _accentColor)),
             ),
           ],
         );
       },
-    );
-  }
-
-  // --- MOCK IMAGE HELPERS (Necessary for the portrait display) ---
-
-  // Helper to construct the full asset path
-  String _getImagePath(String? id, {required String type}) {
-    if (id == null || id.isEmpty) {
-      // Default placeholder based on type if ID is missing
-      return 'assets/placeholders/${type == 'ncu' ? 'ncu' : 'unit'}_placeholder.jpg';
-    }
-    // Assumes all unit/attachment images use the ID and are .jpg files
-    return 'assets/standees/$id.jpg';
-  }
-
-  // Helper to build the image widget
-  Widget _buildUnitImage(
-    String path, {
-    double size = 80.0,
-    bool isMain = false,
-  }) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10.0),
-        boxShadow: isMain
-            ? [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
-                  blurRadius: 6.0,
-                  offset: const Offset(0, 3),
-                ),
-              ]
-            : null,
-        border: Border.all(
-          color: isMain ? Colors.red.shade800 : Colors.blueGrey.shade300,
-          width: isMain ? 3.0 : 1.5,
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8.0),
-        child: Image.asset(
-          path,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            // Show the ID if the image fails to load
-            final id = path.split('/').last.split('.').first;
-            return Container(
-              color: Colors.grey[800],
-              child: Center(
-                child: Text(
-                  'ID: $id',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 10, color: Colors.white70),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
     );
   }
 }
