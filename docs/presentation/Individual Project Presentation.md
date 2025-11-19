@@ -21,7 +21,7 @@
 ---
 
 ## **Slide 4: The Problem**
-![Image](images/Tabletop.jpg)
+![Image](images/Tabletop.JPEG)
 - Multitude of game mechanics  
 - NCUs  
 - Activations of units  
@@ -31,15 +31,15 @@
 ---
 
 ## **Slide 5: Squire**
-![Image](images/Screenshot1.jpg)
+![Image](images/Screenshot1.png)
 - Idea came from a comment a friend made  
 - Will be able to keep track of units  
 
 ---
 
 ## **Slide 6: How It Works**
-![Image](images/Screenshot2.jpg)
-![Image](images/Screenshot3.jpg)
+![Image](images/Screenshot2.png)
+![Image](images/Screenshot3.png)
 - Paste an army list into the input box  
 - Gathers all data from MongoDB server  
 
